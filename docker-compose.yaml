@@ -105,7 +105,7 @@ services:
       - mastodon
 
   db:
-    image: postgres:16-alpine
+    image: postgres:14-alpine
     container_name: mastodon-db
     hostname: mastodon-db
     restart: always

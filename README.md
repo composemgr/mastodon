@@ -10,7 +10,7 @@ Decentralized social network platform (fediverse)
 
 - **web**: lscr.io/linuxserver/mastodon:latest - Main Mastodon web application
 - **streaming**: ghcr.io/mastodon/mastodon-streaming:latest - Real-time streaming API
-- **db**: postgres:16-alpine - PostgreSQL database
+- **db**: postgres:14-alpine - PostgreSQL database
 - **redis**: redis:7-alpine - Redis cache
 - **elastic**: elasticsearch:8.11.0 - Full-text search engine
 
