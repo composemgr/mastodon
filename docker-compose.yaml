@@ -41,16 +41,16 @@ services:
       S3_ALIAS_HOST:
       REDIS_HOST: mastodon-redis
       REDIS_PORT: 6379
-      DB_USER: ${DB_USER_NAME:-mastodon}
-      DB_NAME: ${DB_CREATE_DATABASE_NAME:-mastodon}
+      DB_USER: mastodon
+      DB_NAME: mastodon
       DB_HOST: mastodon-db
-      DB_PASS: ${DB_USER_PASS:-changeme_db_password}
+      DB_PASS: mastodon
       DB_PORT: 5432
       ES_ENABLED: true
       ES_HOST: mastodon-elastic
       ES_PORT: 9200
       ES_USER: elastic
-      ES_PASS: ${ES_PASSWORD:-changeme_elastic_password}
+      ES_PASS: elastic
       SIDEKIQ_ONLY: false
       SIDEKIQ_QUEUE:
       SIDEKIQ_DEFAULT: false
@@ -76,15 +76,15 @@ services:
       TZ: ${TZ:-America/New_York}
       REDIS_HOST: mastodon-redis
       REDIS_PORT: 6379
-      DB_USER: ${DB_USER_NAME:-mastodon}
-      DB_NAME: ${DB_CREATE_DATABASE_NAME:-mastodon}
+      DB_USER: mastodon
+      DB_NAME: mastodon
       DB_HOST: mastodon-db
-      DB_PASS: ${DB_USER_PASS:-changeme_db_password}
+      DB_PASS: mastodon
       DB_PORT: 5432
       ES_ENABLED: false
       ES_USER: elastic
       ES_HOST: mastodon-elastic
-      ES_PASS: ${ES_PASSWORD:-changeme_elastic_password}
+      ES_PASS: elastic
       ES_PORT: 9200
     depends_on:
       - db
@@ -114,9 +114,9 @@ services:
     environment:
       TZ: ${TZ:-America/New_York}
       POSTGRES_HOST_AUTH_METHOD: trust
-      POSTGRES_DB: ${DB_CREATE_DATABASE_NAME:-mastodon}
-      POSTGRES_USER: ${DB_USER_NAME:-mastodon}
-      POSTGRES_PASSWORD: ${DB_USER_PASS:-changeme_db_password}
+      POSTGRES_DB: mastodon
+      POSTGRES_USER: mastodon
+      POSTGRES_PASSWORD: mastodon
     volumes:
       - './rootfs/data/db/postgres/mastodon:/var/lib/postgresql/data'
     healthcheck:
