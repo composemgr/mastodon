@@ -59,7 +59,8 @@ services:
       - './rootfs/data/mastodon:/data'
       - './rootfs/config/mastodon:/config'
     ports:
-      - '172.17.0.1:59038:443'
+      - '172.17.0.1:59038:80'
+      - '172.17.0.1:59039:443'
     networks:
       - mastodon
 
