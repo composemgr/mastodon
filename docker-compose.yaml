@@ -152,7 +152,7 @@ services:
       - mastodon
 
   elastic:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    image: elastic/elasticsearch:8.11.0
     container_name: mastodon-elastic
     hostname: mastodon-elastic
     restart: always
