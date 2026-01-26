@@ -58,6 +58,9 @@ services:
     volumes:
       - './rootfs/data/mastodon:/data'
       - './rootfs/config/mastodon:/config'
+    depends_on:
+      - db
+      - redis
     ports:
       - '172.17.0.1:59038:80'
       - '172.17.0.1:59039:443'
