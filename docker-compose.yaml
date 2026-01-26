@@ -154,6 +154,7 @@ services:
     restart: always
     pull_policy: always
     logging: *default-logging
+    user: "1000:1000"
     environment:
       TZ: ${TZ:-America/New_York}
       discovery.type: single-node
