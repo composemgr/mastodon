@@ -90,11 +90,11 @@ See `docker-compose.yaml` for complete list of configurable options.
 
 ## 📂 Volumes
 
-- `./rootfs/data/mastodon` - Mastodon application data
-- `./rootfs/config/mastodon` - Mastodon configuration
-- `./rootfs/data/db/postgres/mastodon` - PostgreSQL database data
-- `./rootfs/data/db/redis/mastodon` - Redis cache data
-- `./rootfs/data/db/elastic/mastodon` - Elasticsearch indices data
+- `./volumes/data/mastodon` - Mastodon application data
+- `./volumes/config/mastodon` - Mastodon configuration
+- `./volumes/data/db/postgres/mastodon` - PostgreSQL database data
+- `./volumes/data/db/redis/mastodon` - Redis cache data
+- `./volumes/data/db/elastic/mastodon` - Elasticsearch indices data
 
 ## 🔐 Security
 
