@@ -56,7 +56,7 @@ services:
       SIDEKIQ_DEFAULT: false
       SIDEKIQ_THREADS: 5
     volumes:
-      - './rootfs/config/mastodon:/config'
+      - './volumes/config/mastodon:/config'
     depends_on:
       - db
       - redis
@@ -80,7 +80,7 @@ services:
       POSTGRES_USER: mastodon
       POSTGRES_PASSWORD: mastodon
     volumes:
-      - './rootfs/data/db/postgres/mastodon:/var/lib/postgresql/data'
+      - './volumes/data/db/postgres/mastodon:/var/lib/postgresql/data'
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}']
       interval: '10s'
@@ -100,7 +100,7 @@ services:
     environment:
       TZ: ${TZ:-America/New_York}
     volumes:
-      - './rootfs/data/db/redis/mastodon:/data'
+      - './volumes/data/db/redis/mastodon:/data'
     healthcheck:
       test: ['CMD', 'redis-cli', 'ping']
       interval: '10s'
@@ -125,7 +125,7 @@ services:
       xpack.security.enabled: false
       xpack.security.enrollment.enabled: false
     volumes:
-      - './rootfs/data/db/elastic/mastodon:/usr/share/elasticsearch/data'
+      - './volumes/data/db/elastic/mastodon:/usr/share/elasticsearch/data'
     healthcheck:
       test: ['CMD-SHELL', 'curl -f http://localhost:9200/_cluster/health || exit 1']
       interval: '10s'
