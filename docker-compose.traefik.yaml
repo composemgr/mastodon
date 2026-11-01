@@ -1,0 +1,163 @@
+# nginx proxy address - http://172.17.0.1:64246
+name: mastodon
+x-logging: &default-logging
+  options:
+    max-size: '5m'
+    max-file: '1'
+  driver: json-file
+
+services:
+  web:
+    image: lscr.io/linuxserver/mastodon:latest
+    container_name: mastodon-web
+    domainname: ${BASE_DOMAIN_NAME:-example.com}
+    hostname: ${BASE_HOST_NAME:-$HOSTNAME}
+    restart: always
+    pull_policy: always
+    logging: *default-logging
+    environment:
+      TZ: ${TZ:-America/New_York}
+      CONTAINER_NAME: mastodon-web
+      HOSTNAME: ${BASE_HOST_NAME:-$HOSTNAME}
+      WEB_DOMAIN: ${BASE_HOST_NAME:-$HOSTNAME}
+      LOCAL_DOMAIN: ${BASE_HOST_NAME:-$HOSTNAME}
+      OTP_SECRET: ${APP_SECRET_TOKEN_64:-replace-with-a-random-otp-secret}
+      SECRET_KEY_BASE: ${APP_SECRET_KEY:-replace-with-a-random-secret-key}
+      ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY: ${APP_SECRET_TOKEN_32:-replace-with-a-random-32-char-key}
+      ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT: ${ENCRYPTION_KEY:-replace-with-a-random-32-char-salt}
+      ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY: ${SECURE_SECRET:-replace-with-a-random-32-char-key}
+      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
+      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      DB_POOL: ${DB_POOL:-5}
+      NO_CHOWN: false
+      SMTP_SERVER: ${EMAIL_SERVER_HOST:-172.17.0.1}
+      SMTP_PORT: ${EMAIL_SERVER_PORT:-25}
+      SMTP_FROM_ADDRESS: ${EMAIL_SERVER_MAIL_FROM:-no-reply@${BASE_HOST_NAME:-$HOSTNAME}}
+      SMTP_LOGIN: ${EMAIL_SERVER_LOGIN_NAME:-}
+      SMTP_PASSWORD: ${EMAIL_SERVER_LOGIN_PASS:-}
+      SMTP_AUTH_METHOD: ${SMTP_AUTH_METHOD:-none}
+      S3_ENABLED: false
+      S3_BUCKET: ${S3_BUCKET:-}
+      S3_ALIAS_HOST: ${S3_ALIAS_HOST:-}
+      REDIS_HOST: mastodon-redis
+      REDIS_PORT: '6379'
+      DB_USER: ${DB_USER_NAME:-mastodon}
+      DB_NAME: ${DB_CREATE_DATABASE_NAME:-mastodon}
+      DB_HOST: mastodon-db
+      DB_PASS: ${DB_USER_PASS:-replace-with-a-random-password}
+      DB_PORT: '5432'
+      ES_ENABLED: 'true'
+      ES_HOST: mastodon-elastic
+      ES_PORT: '9200'
+      ES_USER: ${ES_USER:-elastic}
+      ES_PASS: ${ES_PASS:-replace-with-a-random-password}
+      SIDEKIQ_ONLY: 'false'
+      SIDEKIQ_QUEUE: ${SIDEKIQ_QUEUE:-}
+      SIDEKIQ_DEFAULT: 'false'
+      SIDEKIQ_THREADS: ${SIDEKIQ_THREADS:-5}
+    volumes:
+      - './volumes/config/mastodon:/config'
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.docker.network=traefik'
+      - 'traefik.http.routers.web.entrypoints=http'
+      - 'traefik.http.routers.web.rule=Host(`${BASE_HOST_NAME:-$HOSTNAME}`)'
+      - 'traefik.http.routers.web.middlewares=web-https-redirect'
+      - 'traefik.http.middlewares.web-https-redirect.redirectscheme.scheme=https'
+      - 'traefik.http.routers.web-secure.entrypoints=https'
+      - 'traefik.http.routers.web-secure.rule=Host(`${BASE_HOST_NAME:-$HOSTNAME}`)'
+      - 'traefik.http.routers.web-secure.tls.certresolver=cloudflare'
+      - 'traefik.http.routers.web-secure.service=web'
+      - 'traefik.http.services.web.loadbalancer.server.port=80'
+    networks:
+      - mastodon
+      - traefik
+
+  db:
+    image: postgres:latest
+    container_name: mastodon-db
+    domainname: ${BASE_DOMAIN_NAME:-example.com}
+    hostname: mastodon-db
+    restart: always
+    pull_policy: always
+    logging: *default-logging
+    environment:
+      TZ: ${TZ:-America/New_York}
+      CONTAINER_NAME: mastodon-db
+      POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_DB: ${DB_CREATE_DATABASE_NAME:-mastodon}
+      POSTGRES_USER: ${DB_USER_NAME:-mastodon}
+      POSTGRES_PASSWORD: ${DB_USER_PASS:-replace-with-a-random-password}
+    volumes:
+      - './volumes/data/db/postgres/mastodon:/var/lib/postgresql/data'
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}']
+      interval: '10s'
+      timeout: '30s'
+      retries: 5
+      start_period: '20s'
+    networks:
+      - mastodon
+
+  redis:
+    image: redis:alpine
+    container_name: mastodon-redis
+    domainname: ${BASE_DOMAIN_NAME:-example.com}
+    hostname: mastodon-redis
+    restart: always
+    pull_policy: always
+    logging: *default-logging
+    environment:
+      TZ: ${TZ:-America/New_York}
+      CONTAINER_NAME: mastodon-redis
+    volumes:
+      - './volumes/data/db/redis/mastodon:/data'
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: '10s'
+      timeout: '30s'
+      retries: 5
+      start_period: '20s'
+    networks:
+      - mastodon
+
+  elastic:
+    image: docker.elastic.co/elasticsearch/elasticsearch:latest
+    container_name: mastodon-elastic
+    domainname: ${BASE_DOMAIN_NAME:-example.com}
+    hostname: mastodon-elastic
+    restart: always
+    pull_policy: always
+    logging: *default-logging
+    user: '1000:1000'
+    environment:
+      TZ: ${TZ:-America/New_York}
+      CONTAINER_NAME: mastodon-elastic
+      discovery.type: single-node
+      ES_JAVA_OPTS: -Xms512m -Xmx512m
+      xpack.security.enabled: 'false'
+      xpack.security.enrollment.enabled: 'false'
+    volumes:
+      - './volumes/data/db/elastic/mastodon:/usr/share/elasticsearch/data'
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -f http://localhost:9200/_cluster/health || exit 1']
+      interval: '10s'
+      timeout: '30s'
+      retries: 5
+      start_period: '30s'
+    networks:
+      - mastodon
+
+networks:
+  mastodon:
+    name: mastodon
+    external: false
+  traefik:
+    external: true

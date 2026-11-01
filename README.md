@@ -1,18 +1,20 @@
 ## 👋 Welcome to mastodon 🚀
 
-Decentralized social network platform (fediverse)
+Mastodon is a decentralized social media platform running on the ActivityPub protocol
 
 ## 📋 Description
 
-Decentralized social network platform (fediverse)
+Mastodon is a decentralized social media platform running on the ActivityPub protocol
 
 ## 🚀 Services
 
-- **web**: lscr.io/linuxserver/mastodon:latest - Main Mastodon web application
-- **streaming**: ghcr.io/mastodon/mastodon-streaming:latest - Real-time streaming API
-- **db**: postgres:14-alpine - PostgreSQL database
-- **redis**: redis:7-alpine - Redis cache
-- **elastic**: elasticsearch:8.11.0 - Full-text search engine
+- **web**: lscr.io/linuxserver/mastodon:latest
+
+### Infrastructure Components
+
+- **db**: Postgres database
+- **redis**: Redis cache and queue backend
+- **elastic**: Elasticsearch full-text search
 
 
 ## 📦 Installation
@@ -26,7 +28,8 @@ curl -q -LSsf "https://raw.githubusercontent.com/composemgr/mastodon/main/docker
 ```bash
 git clone "https://github.com/composemgr/mastodon" ~/.local/srv/docker/mastodon
 cd ~/.local/srv/docker/mastodon
-docker compose up -d
+cp default.env .env
+docker compose --env-file .env up -d
 ```
 
 ### Option 3: Using composemgr
@@ -38,64 +41,60 @@ composemgr install mastodon
 
 ### Environment Variables
 
-#### Basic Configuration
-
 ```shell
 TZ=America/New_York
-BASE_HOST_NAME=$HOSTNAME              # Hostname for Mastodon instance
-```
-
-#### Application Secrets
-
-```shell
-APP_SECRET_KEY=changeme_otp_secret
-APP_JWT_TOKEN=changeme_secret_key_base
-ENCRYPTION_KEY=changeme_deterministic_key
-VAPID_PRIVATE_KEY=changeme_vapid_private
-VAPID_PUBLIC_KEY=changeme_vapid_public
-```
-
-#### SMTP Configuration
-
-By default, SMTP authentication is disabled (`SMTP_AUTH_METHOD=none`). Configure the following variables to enable email functionality:
-
-```shell
-SMTP_AUTH_METHOD=none                         # Authentication method: none, plain, login, cram_md5
-EMAIL_SERVER_HOST=172.17.0.1                  # SMTP server hostname
-EMAIL_SERVER_PORT=587                         # SMTP server port (25, 587, 465)
-EMAIL_SERVER_LOGIN_NAME=                      # SMTP username (if auth enabled)
-EMAIL_SERVER_LOGIN_PASS=                      # SMTP password (if auth enabled)
-EMAIL_SERVER_MAIL_FROM=no-reply@example.com   # From address for emails
-```
-
-#### Database Configuration
-
-```shell
-DB_CREATE_DATABASE_NAME=mastodon
+BASE_DOMAIN_NAME=example.com
+BASE_HOST_NAME=mastodon.example.com
 DB_USER_NAME=mastodon
-DB_USER_PASS=changeme_db_password
-```
-
-#### Elasticsearch Configuration
-
-```shell
-ES_PASSWORD=changeme_elastic_password    # Elasticsearch password
+DB_USER_PASS=replace-with-a-random-password
+APP_SECRET_KEY=replace-with-a-random-32-character-secret
 ```
 
 See `docker-compose.yaml` for complete list of configurable options.
 
+### Environment Files
+
+`default.env.sample` holds the full set of variables and is copied to `.env`
+before starting the stack:
+
+```bash
+cp default.env .env
+docker compose --env-file .env up -d
+```
+
+`app.env.sample` holds the app-specific overrides and is copied to `app.env`:
+
+```bash
+cp app.env.sample app.env
+```
+
+`composemgr up` applies `app.env` and `default.env` automatically. Raw
+`docker compose` commands need `--env-file .env` to pick up the same values.
+
+### Reverse Proxy
+
+Three standalone compose files ship in this repo:
+
+| File | Use |
+|------|-----|
+| `docker-compose.yaml` | Default, published on `172.17.0.1:64246` |
+| `docker-compose.traefik.yaml` | Behind an existing external `traefik` network |
+| `docker-compose.tunnel.yaml` | Behind an existing external `cloudflare` tunnel network |
+
+```bash
+docker compose -f docker-compose.traefik.yaml --env-file .env up -d
+```
+
 ## 🌐 Access
 
-- **Web Interface**: https://172.17.0.1:59038
+- **Web Interface**: http://172.17.0.1:64246
 
 ## 📂 Volumes
 
-- `./volumes/data/mastodon` - Mastodon application data
-- `./volumes/config/mastodon` - Mastodon configuration
-- `./volumes/data/db/postgres/mastodon` - PostgreSQL database data
-- `./volumes/data/db/redis/mastodon` - Redis cache data
-- `./volumes/data/db/elastic/mastodon` - Elasticsearch indices data
-
+- `./volumes/config/mastodon` - Mastodon configuration and secrets
+- `./volumes/data/db/postgres/mastodon` - Database data
+- `./volumes/data/db/redis/mastodon` - Redis data
+- `./volumes/data/db/elastic/mastodon` - Elasticsearch data
 ## 🔐 Security
 
 - Change all default passwords before deploying to production
@@ -107,34 +106,26 @@ See `docker-compose.yaml` for complete list of configurable options.
 ## 🔍 Logging
 
 ```shell
-# View all logs
-docker compose logs -f
-
-# View specific service logs
-docker compose logs -f web
-docker compose logs -f streaming
-docker compose logs -f db
-docker compose logs -f redis
-docker compose logs -f elastic
+docker compose --env-file .env logs -f web
 ```
 
 ## 🛠️ Management
 
 ```bash
 # Start services
-docker compose up -d
+docker compose --env-file .env up -d
 
 # Stop services
-docker compose down
+docker compose --env-file .env down
 
 # Update to latest images
-docker compose pull && docker compose up -d
+docker compose --env-file .env pull && docker compose --env-file .env up -d
 
 # View logs
-docker compose logs -f
+docker compose --env-file .env logs -f
 
 # Restart services
-docker compose restart
+docker compose --env-file .env restart
 ```
 
 ## 📋 Requirements
@@ -144,5 +135,5 @@ docker compose restart
 
 ## 🤝 Author
 
-🤖 casjay: [Github](https://github.com/casjay) 🤖  
+🤖 casjay: [Github](https://github.com/casjay) 🤖
 🦄 composemgr: [Github](https://github.com/composemgr) 🦄
