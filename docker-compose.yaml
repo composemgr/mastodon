@@ -52,8 +52,6 @@ services:
       ES_ENABLED: 'true'
       ES_HOST: mastodon-elastic
       ES_PORT: '9200'
-      ES_USER: ${ES_USER:-elastic}
-      ES_PASS: ${ES_PASS:-replace-with-a-random-password}
       SIDEKIQ_ONLY: 'false'
       SIDEKIQ_QUEUE: ${SIDEKIQ_QUEUE:-}
       SIDEKIQ_DEFAULT: 'false'
@@ -125,8 +123,20 @@ services:
     networks:
       - mastodon
 
+  elastic-init:
+    image: alpine:latest
+    container_name: mastodon-elastic-init
+    restart: 'no'
+    pull_policy: always
+    logging: *default-logging
+    command: ['chown', '-R', '1000:1000', '/data']
+    volumes:
+      - './volumes/data/db/elastic/mastodon:/data:z'
+    networks:
+      - mastodon
+
   elastic:
-    image: docker.elastic.co/elasticsearch/elasticsearch:latest
+    image: opensearchproject/opensearch:latest
     container_name: mastodon-elastic
     domainname: ${BASE_DOMAIN_NAME:-example.com}
     hostname: mastodon-elastic
@@ -138,17 +148,20 @@ services:
       TZ: ${TZ:-America/New_York}
       CONTAINER_NAME: mastodon-elastic
       discovery.type: single-node
-      ES_JAVA_OPTS: -Xms512m -Xmx512m
-      xpack.security.enabled: 'false'
-      xpack.security.enrollment.enabled: 'false'
+      OPENSEARCH_JAVA_OPTS: -Xms512m -Xmx512m
+      DISABLE_SECURITY_PLUGIN: 'true'
+      DISABLE_INSTALL_DEMO_CONFIG: 'true'
     volumes:
-      - './volumes/data/db/elastic/mastodon:/usr/share/elasticsearch/data'
+      - './volumes/data/db/elastic/mastodon:/usr/share/opensearch/data'
     healthcheck:
       test: ['CMD-SHELL', 'curl -f http://localhost:9200/_cluster/health || exit 1']
       interval: '10s'
       timeout: '30s'
       retries: 5
       start_period: '30s'
+    depends_on:
+      elastic-init:
+        condition: service_completed_successfully
     networks:
       - mastodon
 

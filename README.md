@@ -14,7 +14,7 @@ Mastodon is a decentralized social media platform running on the ActivityPub pro
 
 - **db**: Postgres database
 - **redis**: Redis cache and queue backend
-- **elastic**: Elasticsearch full-text search
+- **elastic**: OpenSearch full-text search (Elasticsearch-compatible)
 
 
 ## 📦 Installation
@@ -94,7 +94,7 @@ docker compose -f docker-compose.traefik.yaml --env-file .env up -d
 - `./volumes/config/mastodon` - Mastodon configuration and secrets
 - `./volumes/data/db/postgres/mastodon` - Database data
 - `./volumes/data/db/redis/mastodon` - Redis data
-- `./volumes/data/db/elastic/mastodon` - Elasticsearch data
+- `./volumes/data/db/elastic/mastodon` - OpenSearch data
 ## 🔐 Security
 
 - Change all default passwords before deploying to production
